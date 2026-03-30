@@ -2,6 +2,8 @@
 
 A premium MERN stack travel planning application built with React, Node.js, Express, and MongoDB.
 
+Postman Documentation: https://documenter.getpostman.com/view/39189509/2sBXinGAMV
+
 ## 🏗 Project Structure
 
 ```
