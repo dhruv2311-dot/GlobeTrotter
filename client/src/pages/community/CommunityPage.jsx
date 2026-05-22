@@ -16,16 +16,21 @@ export default function CommunityPage() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [error, setError] = useState(null);
 
   const fetchTrips = async () => {
     setLoading(true);
+    setError(null);
     try {
       const params = { page, limit: 12 };
       if (search) params.search = search;
       const { data } = await api.get('/trips/community', { params });
       setTrips(data.trips);
       setTotalPages(data.pages);
-    } catch {} finally { setLoading(false); }
+    } catch (err) {
+      console.error('Failed to fetch community trips:', err);
+      setError(err.message || 'Failed to fetch community trips');
+    } finally { setLoading(false); }
   };
 
   useEffect(() => { fetchTrips(); }, [search, page]);
@@ -56,6 +61,18 @@ export default function CommunityPage() {
 
       {loading ? (
         <div className="loading-screen"><div className="spinner" /></div>
+      ) : error ? (
+        <div className="empty-state error-state" style={{ border: '1px solid rgba(229, 57, 53, 0.2)', padding: '3rem', borderRadius: 'var(--radius-lg)', background: 'rgba(229, 57, 53, 0.05)' }}>
+          <div className="badge badge-danger" style={{ marginBottom: '1rem', padding: '0.5rem 1rem' }}>Connection Error</div>
+          <h3 style={{ color: 'var(--danger)', marginBottom: '0.5rem' }}>Failed to Load Community Trips</h3>
+          <p style={{ maxWidth: '550px', margin: '0 auto 1.5rem', color: 'var(--text-secondary)' }}>
+            We couldn't connect to the backend server to fetch community trips. Please check if your <strong>VITE_API_URL</strong> environment variable is set in your deployment configurations to point to your live backend server API.
+          </p>
+          <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontFamily: 'monospace', background: 'rgba(0,0,0,0.2)', padding: '0.75rem', borderRadius: 'var(--radius-sm)', display: 'inline-block', textAlign: 'left' }}>
+            <strong>Attempted URL:</strong> {api.defaults.baseURL}/trips/community<br />
+            <strong>Error Details:</strong> {error}
+          </div>
+        </div>
       ) : trips.length === 0 ? (
         <div className="empty-state">
           <Globe2 size={64} className="empty-icon" />

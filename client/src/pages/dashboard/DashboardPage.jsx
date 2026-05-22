@@ -30,9 +30,12 @@ export default function DashboardPage() {
   const [cities, setCities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [heroIdx] = useState(0);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
+      setError(null);
       try {
         const [tripsRes, citiesRes] = await Promise.all([
           api.get('/trips?sortBy=createdAt&order=desc'),
@@ -41,7 +44,8 @@ export default function DashboardPage() {
         setTrips(tripsRes.data.trips);
         setCities(citiesRes.data.cities);
       } catch (err) {
-        console.error(err);
+        console.error('Dashboard fetching error:', err);
+        setError(err.message || 'Failed to connect to backend server');
       } finally {
         setLoading(false);
       }
@@ -86,16 +90,33 @@ export default function DashboardPage() {
       </section>
 
       <div className="container dashboard-body">
+        {error && (
+          <div className="empty-state error-state" style={{ border: '1px solid rgba(229, 57, 53, 0.2)', padding: '2.5rem', borderRadius: 'var(--radius-lg)', background: 'rgba(229, 57, 53, 0.05)', marginBottom: '2rem' }}>
+            <div className="badge badge-danger" style={{ marginBottom: '1rem', padding: '0.5rem 1rem' }}>Connection Error</div>
+            <h3 style={{ color: 'var(--danger)', marginBottom: '0.5rem' }}>Failed to Load Dashboard Data</h3>
+            <p style={{ maxWidth: '600px', margin: '0 auto 1.5rem', color: 'var(--text-secondary)' }}>
+              The frontend application was unable to fetch trips and popular destinations from the backend server.
+              If this site is deployed, please verify your frontend <strong>VITE_API_URL</strong> and backend CORS configurations (e.g. <strong>CLIENT_URL</strong>).
+            </p>
+            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontFamily: 'monospace', background: 'rgba(0,0,0,0.2)', padding: '0.75rem', borderRadius: 'var(--radius-sm)', display: 'inline-block', textAlign: 'left' }}>
+              <strong>Base API URL:</strong> {api.defaults.baseURL}<br />
+              <strong>Error Details:</strong> {error}
+            </div>
+          </div>
+        )}
+
         {/* Stats */}
-        <motion.section variants={staggerParent} initial="initial" animate="animate" className="stats-section">
-          {stats.map((stat) => (
-            <motion.div key={stat.label} variants={fadeUp} className={`stat-card stat-card-${stat.color}`}>
-              <div className={`stat-icon stat-icon-${stat.color}`}>{stat.icon}</div>
-              <div className="stat-number">{stat.value}</div>
-              <div className="stat-label">{stat.label}</div>
-            </motion.div>
-          ))}
-        </motion.section>
+        {!error && (
+          <motion.section variants={staggerParent} initial="initial" animate="animate" className="stats-section">
+            {stats.map((stat) => (
+              <motion.div key={stat.label} variants={fadeUp} className={`stat-card stat-card-${stat.color}`}>
+                <div className={`stat-icon stat-icon-${stat.color}`}>{stat.icon}</div>
+                <div className="stat-number">{stat.value}</div>
+                <div className="stat-label">{stat.label}</div>
+              </motion.div>
+            ))}
+          </motion.section>
+        )}
 
         {/* Recent Trips */}
         {recentTrips.length > 0 && (
@@ -117,7 +138,7 @@ export default function DashboardPage() {
           </section>
         )}
 
-        {trips.length === 0 && !loading && (
+        {trips.length === 0 && !loading && !error && (
           <motion.div className="empty-state" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <Globe size={64} className="empty-icon" />
             <h3>No trips yet!</h3>

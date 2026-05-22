@@ -16,10 +16,19 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor - handle auth errors
+// Response interceptor - handle auth errors & connection errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (!error.response) {
+      console.error(
+        `🚨 GlobeTrotter Connection Error:\n` +
+        `- Attempted Endpoint: ${error.config?.url}\n` +
+        `- Base URL: ${api.defaults.baseURL}\n` +
+        `- Error Message: ${error.message}\n` +
+        `Please check if VITE_API_URL is set correctly in your deployment environment variables and that the backend server is active and allows CORS.`
+      );
+    }
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
