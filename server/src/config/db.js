@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const connectDB = async () => {
   try {
     const conn = await mongoose.connect(process.env.MONGO_URI, {
+      dbName: 'globetrotter',
       serverSelectionTimeoutMS: 10000,
       socketTimeoutMS: 45000,
       maxPoolSize: 10,
@@ -10,7 +11,7 @@ const connectDB = async () => {
       maxIdleTimeMS: 30000,
       connectTimeoutMS: 10000,
     });
-    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+    console.log(`✅ MongoDB Connected: ${conn.connection.host} (DB: ${conn.connection.name})`);
   } catch (error) {
     console.error(`❌ MongoDB connection error: ${error.message}`);
     process.exit(1);
